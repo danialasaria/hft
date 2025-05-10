@@ -2,6 +2,8 @@
 
 A Python-based HFT research project that streams Binance spot-market data, reconstructs an in-memory limit-order-book, and surfaces real-time metrics plus a live latency dashboard.
 
+![hftGif](https://github.com/user-attachments/assets/b1745aec-1c63-492c-a696-b47c2de76170)
+
 ## Project Structure
 
 - `feed.py`: Async WebSocket client for Binance public data streams with reconnect logic.
