@@ -10,6 +10,7 @@ import matplotlib
 matplotlib.use('macosx') # Use macOS native backend
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd # For x-axis datetime formatting
 
@@ -20,7 +21,7 @@ MAX_DATAPOINTS = 200 # Number of data points for the rolling line plot
 MAX_DELTAS = 5000  # Ring buffer size for latency deltas
 PLOT_UPDATE_INTERVAL_MS = 200  # How often to redraw the plot
 HIST_BINS = 100 # Number of bins for the histogram (e.g., 1ms bins up to 100ms)
-HIST_RANGE_MS = (0, 100) # Range of histogram in milliseconds
+HIST_RANGE_MS = (-500, 500) # Range of histogram in milliseconds - WIDENED FOR TESTING
 
 # Global data structures
 latency_deltas_us: Deque[float] = deque(maxlen=MAX_DELTAS)
@@ -60,6 +61,10 @@ async def latency_data_collector(symbol: str):
         delta_ns = local_receive_time_ns - binance_trade_time_ns
         delta_us = delta_ns / 1000.0
         
+        # --- DIAGNOSTIC PRINT FOR LATENCY CALC ---
+        print(f"LatencyCalc | TradeTime(T): {msg['T']}ms | LocalRecv: {local_receive_time_ns}ns | BinanceTradeTime: {binance_trade_time_ns}ns | Delta: {delta_us:.2f}µs")
+        # --- END DIAGNOSTIC PRINT ---
+
         latency_deltas_us.append(delta_us)
         
         # Use the _ts_received_ws as the basis for wall clock time for consistency
@@ -72,8 +77,8 @@ def update_latency_plot(frame):
 
     # Subplot 1: Rolling Latency Line
     if wall_clock_times:
-        # Convert monotonic seconds to datetime objects for prettier x-axis
         plot_times = [pd.to_datetime(t, unit='s') for t in wall_clock_times]
+        # Use rolling_latency_plot_data directly (it's already in µs)
         line_latency_rolling.set_data(plot_times, rolling_latency_plot_data)
         axs[0].relim()
         axs[0].autoscale_view()
